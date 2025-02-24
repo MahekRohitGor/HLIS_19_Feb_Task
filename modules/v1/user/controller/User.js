@@ -211,6 +211,21 @@ class User{
     });  
     }
 
+    rating_deal(req,res){
+        const request_data = req.body;
+        userModel.rating_deal(request_data, request_data.user_id, (response) => {
+        common.response(res, response);
+    });  
+    }
+
+    like_unlike(req,res){
+        const request_data = req.body;
+        userModel.like_unlike(request_data, request_data.user_id, (response) => {
+        common.response(res, response);
+    });  
+    }
+    
+
 }
 
 module.exports = new User();

@@ -22,6 +22,8 @@ const user = (app) =>{
     app.post("/v1/user/deal_detail/:id", User.deal_detail);
     app.post("/v1/user/saved-deals", User.saved_deals);
     app.post("/v1/user/filter-data", User.filter_data);
+    app.post("/v1/user/rating-deal", User.rating_deal);
+    app.post("/v1/user/like-unlike", User.like_unlike);
 
     app.post("/v1/user/profile_user_loggedin", User.profile_user_loggedin);
     app.post("/v1/user/profile_user/:id", User.profile_user);

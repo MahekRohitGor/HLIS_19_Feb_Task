@@ -11,4 +11,4 @@ const response_code = {
     NOT_FOUND: "404"
 }
 
-module.export = response_code;
+module.exports = response_code;

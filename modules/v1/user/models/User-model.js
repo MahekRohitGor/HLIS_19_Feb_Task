@@ -1572,6 +1572,96 @@ class userModel{
         }
     }
     
+    async rating_deal(requested_data, user_id, callback){
+        try{
+
+            const {deal_id, rating} = requested_data;
+
+        const checkQuery = `
+            SELECT 
+                (SELECT COUNT(*) FROM tbl_rating 
+                 WHERE user_id = ? AND deal_id = ? 
+                 AND is_active = 1 AND is_deleted = 0) AS has_rated,
+                (SELECT COUNT(*) FROM tbl_report 
+                 WHERE deal_id = ? 
+                 AND is_active = 1 AND is_deleted = 0) AS has_reported
+        `;
+
+        const [result] = await database.query(checkQuery, [user_id, deal_id, user_id, deal_id]);
+
+        if (result[0].has_rated > 0 || result[0].has_reported > 0) {
+            return callback({
+                code: response_code.INVALID_REQUEST,
+                message: "User has already rated this deal or reported deal."
+            });
+        }
+
+        const insertRatingQuery = `
+            INSERT INTO tbl_rating (user_id, deal_id, rating) 
+            VALUES (?, ?, ?)
+        `;
+        await database.query(insertRatingQuery, [user_id, deal_id, rating]);
+
+        return callback({
+            code: response_code.SUCCESS,
+            message: "Rating added successfully."
+        });
+
+        }catch(error){
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: error.message
+            });
+        }
+    }
+
+    async like_unlike(request_data, user_id, callback){
+        const {deal_id} = request_data;
+        if (!user_id || !deal_id) {
+            return callback({
+                code: response_code.REQUEST_ERROR,
+                message: "User ID and Deal ID are required."
+            });
+        }
+
+        try{
+
+            const [existingLike] = await database.query(
+                "SELECT * FROM tbl_likes WHERE user_id = ? AND deal_id = ?",
+                [user_id, deal_id]
+            );
+    
+            if (existingLike.length > 0) {
+                await database.query(
+                    "DELETE FROM tbl_likes WHERE user_id = ? AND deal_id = ?",
+                    [user_id, deal_id]
+                );
+    
+                return callback({
+                    code: response_code.SUCCESS,
+                    message: "Deal unliked successfully."
+                });
+            } else {
+                await database.query(
+                    "INSERT INTO tbl_likes (user_id, deal_id) VALUES (?, ?)",
+                    [user_id, deal_id]
+                );
+    
+                return callback({
+                    code: response_code.SUCCESS,
+                    message: "Deal liked successfully."
+                });
+            }
+
+        } catch(error){
+            console.error("Error in Like/Unlike API:", error);
+            return callback({
+                code: response_code.OPERATION_FAILED,
+                message: "Internal Server Error"
+            });
+
+        }
+    }
     
 
 }
