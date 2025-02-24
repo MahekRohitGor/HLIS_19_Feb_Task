@@ -920,6 +920,14 @@ class userModel{
             LEFT JOIN tbl_tags t ON dt.tag_id = t.tag_id AND t.is_active = 1 AND t.is_deleted = 0
             left join tbl_user u on u.user_id = d.user_id
             WHERE d.deal_id = ? AND d.is_active = 1 AND d.is_deleted = 0
+            AND d.user_id NOT IN (
+                SELECT DISTINCT d.user_id 
+                FROM tbl_report r
+                INNER JOIN tbl_deal d ON r.deal_id = d.deal_id
+                WHERE r.is_active = 1 
+                AND r.is_deleted = 0
+                AND d.user_id IS NOT NULL
+            )
             GROUP BY d.deal_id;
             `;
     
@@ -1471,7 +1479,15 @@ class userModel{
             WHERE su.user_id = ? AND d.is_active = 1 AND d.is_deleted = 0
             AND user_saved_deal.is_active = 1 AND user_saved_deal.is_deleted = 0
             AND user_posted_deal.is_active = 1 AND user_posted_deal.is_deleted = 0 
-            AND c.is_active = 1 AND c.is_deleted = 0;
+            AND c.is_active = 1 AND c.is_deleted = 0
+            AND user_posted_deal.user_id NOT IN (
+                SELECT DISTINCT d.user_id 
+                FROM tbl_report r
+                INNER JOIN tbl_deal d ON r.deal_id = d.deal_id
+                WHERE r.is_active = 1 
+                AND r.is_deleted = 0
+                AND d.user_id IS NOT NULL
+            )
             `;
 
             const [user] = await database.query(savedDealsQuery, [user_id]);
@@ -1513,17 +1529,28 @@ class userModel{
                 SELECT 
                     d.deal_id, 
                     d.title, 
-                    d.description, 
-                    d.category, 
+                    d.descriptions, 
+                    c.category_name, 
                     d.latitude, 
                     d.longitude,
                     (6371 * ACOS(COS(RADIANS(?)) * COS(RADIANS(d.latitude)) 
                     * COS(RADIANS(d.longitude) - RADIANS(?)) + SIN(RADIANS(?)) 
                     * SIN(RADIANS(d.latitude)))) AS distance
                 FROM tbl_deal d
-                WHERE d.category = ? 
+                inner join
+                tbl_category c on
+                c.category_id = d.category_id
+                WHERE c.category_name = ? 
                 AND d.is_active = 1 
-                AND d.is_deleted = 0 
+                AND d.is_deleted = 0
+                AND d.user_id NOT IN (
+                SELECT DISTINCT d.user_id 
+                FROM tbl_report r
+                INNER JOIN tbl_deal d ON r.deal_id = d.deal_id
+                WHERE r.is_active = 1 
+                AND r.is_deleted = 0
+                AND d.user_id IS NOT NULL
+            )
                 HAVING distance <= ?
                 ORDER BY distance;
             `;

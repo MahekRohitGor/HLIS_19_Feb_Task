@@ -204,6 +204,13 @@ class User{
     });  
     }
 
+    filter_data(req,res){
+        const request_data = req.body;
+        userModel.filter_data(request_data, (response) => {
+        common.response(res, response);
+    });  
+    }
+
 }
 
 module.exports = new User();
