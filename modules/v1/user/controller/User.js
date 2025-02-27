@@ -1,21 +1,98 @@
 var userModel = require("../models/User-model");
 var common = require("../../../../utilities/common");
 const response_code = require("../../../../utilities/response-error-code");
+const {default: localizify} = require('localizify');
+const en = require("../../../../language/en");
+const fr = require("../../../../language/fr");
+const guj = require("../../../../language/guj");
+const validator = require("../../../../middlewares/validators");
+
+const { t } = require('localizify');
+
+localizify
+    .add("en", en)
+    .add("fr", fr)
+    .add("guj", guj);
 
 class User{
 
-    signup(req,res){
-        var request_data = req.body;
-        userModel.signup(request_data, (_response_data)=>{
-            common.response(res, _response_data);
-        });
+    async signup(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                email_id: "required|email",
+                user_name: "required",
+                fname: "required",
+                lname: "required",
+                user_name: "required",
+                phone_number: "string|min:10|regex:/^[0-9]+$/",
+                passwords: "required|min:8"
+            }
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'phone_number.min': t('mobile_number_min'),
+                'phone_number.regex': t('mobile_number_numeric'),
+                'passwords.min': t('passwords_min')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id'),
+                'passwords': t('rest_keywords_password')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.signup(request_data, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+        }
     }
 
-    login(req,res){
-        var request_data = req.body;
-        userModel.login(request_data, (_response_data)=>{
-            common.response(res, _response_data);
-        });
+    async login(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                email_id: "required|email",
+                login_type: "required_without:social_id",
+                social_id: "required_without:login_type",
+                passwords: "required_without:social_id|nullable|min:8"
+            }
+            var message = {
+                required: t('required'),
+                email: t('email'),
+                'passwords.min': t('passwords_min')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id'),
+                'passwords': t('rest_keywords_password')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.login(request_data, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+
+        }
+        
     }
 
     async logout(req, res) {
@@ -41,76 +118,232 @@ class User{
         }
     }
 
-    forgot_password(req,res){
-        var request_data = req.body;
-        userModel.forgot_password(request_data, (_response_data)=>{
-            common.response(res, _response_data);
-        });
+    async forgot_password(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                email_id: "required|email"
+            }
+            var message = {
+                required: t('required'),
+                email: t('email')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.forgot_password(request_data, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+        }
+        
     }
 
-    reset_password(req,res){
-        var request_data = req.body;
-        userModel.reset_password(request_data, (_response_data)=>{
-            common.response(res, _response_data);
-        });
+    async reset_password(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                reset_token: "required|min:40|max:40",
+                new_password: "required|min:8"
+            }
+            var message = {
+                required: t('required'),
+                'new_password.min': t('passwords_min'),
+                // 'reset_token.min': t('token_min'),
+                // 'reset_token.max': t('token_max')
+
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.reset_password(request_data, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+        }
+        
     }
 
-    complete_profile(req,res){
-        var request_data = req.body;
-        userModel.complete_profile(request_data, (_response_data)=>{
-            common.response(res, _response_data);
-        });
+    async complete_profile(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            console.log("User language:", req.userLang);
+            var request_data = req.body;
+            console.log(request_data)
+
+            var rules = {
+                user_id: "required",
+                profile_pic: "required"
+            }
+            var message = {
+                required: t('required')
+            }
+            var keywords = {
+                'user_id': t('rest_keywords_user_id'),
+                'profile_pic': t('rest_keywords_profile')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            console.log(isValid);
+            if (!isValid) return;
+
+            userModel.complete_profile(request_data, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            console.error("Error in complete_profile:", error);
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+        }
+        
     }
 
-    change_password(req,res){
-        var request_data = req.body;
-        userModel.changePassword(request_data, (_response_data)=>{
-            common.response(res, _response_data);
-        });
+    async change_password(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                user_id: "required",
+                old_password: "required|min:8",
+                new_password: "required|min:8"
+            }
+            var message = {
+                required: t('required'),
+                'old_password.min': t('passwords_min'),
+                'new_password.min': t('passwords_min')
+            }
+            var keywords = {
+                'new_password': t('rest_keywords_password'),
+                'old_password': t('rest_keywords_password')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.changePassword(request_data, (_response_data)=>{
+                common.response(res, _response_data);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+        }
     }
     
-    category_listing(req,res){
+    async category_listing(req,res){
         var request_data = req.body;
         userModel.category_listing(request_data, (_response_data)=>{
             common.response(res, _response_data);
         });
     }
 
-    add_deal(req,res){
-        const request_data = req.body;
-        if (!request_data.title || !request_data.descriptions || !request_data.category_name) {
+    async add_deal(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                descriptions: "required",
+                title: "required",
+                website_url: "required",
+                category_name: "required",
+                image_name: "required"
+            }
+            var message = {
+                required: t('required')
+            }
+            var keywords = {
+                'descriptions': t('rest_keywords_descriptions')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.add_deal(request_data, request_data.user_id, (response_data) => {
+                common.response(res, response_data);
+            });
+
+        } catch(error){
+            console.error(error);
             return common.response(res, {
                 code: response_code.OPERATION_FAILED,
-                message: "Missing required fields"
-           });
+                message: t('rest_keywords_something_went_wrong')
+            });
         }
-
-        userModel.add_deal(request_data, request_data.user_id, (response_data) => {
-            common.response(res, response_data);
-        });
+        
     }
 
-    add_post(req,res){
-        const request_data = req.body;
-        if (!request_data.title || !request_data.descriptions || !request_data.category_name) {
+    async add_post(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                descriptions: "required",
+                title: "required",
+                category_name: "required",
+                user_id: "required"
+            }
+            var message = {
+                required: t('required')
+            }
+            var keywords = {
+                'descriptions': t('rest_keywords_descriptions'),
+                'user_id': t('rest_keywords_user_id')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.add_post(request_data, request_data.user_id, (response_data) => {
+                common.response(res, response_data);
+            });
+
+        } catch(error){
+            console.error(error);
             return common.response(res, {
                 code: response_code.OPERATION_FAILED,
-                message: "Missing required fields"
-           });
+                message: t('rest_keywords_something_went_wrong')
+            });
         }
-        userModel.add_post(request_data, request_data.user_id, (response_data) => {
-            common.response(res, response_data);
-        });
     }
 
-    deal_listing_main(req,res){
+    async deal_listing_main(req,res){
         const request_data = req.body;
         userModel.deal_listing_main(request_data, request_data.user_id, (response_data) => {
             common.response(res, response_data);
         });
     }
 
-    deal_detail(req,res){
+    async deal_detail(req,res){
         const request_data = req.body;
         const deal_id = req.params.id;
         userModel.deal_detail(request_data, request_data.user_id, deal_id, (response_data) => {
@@ -118,14 +351,14 @@ class User{
         });
     }
 
-    profile_user_loggedin(req,res){
+    async profile_user_loggedin(req,res){
         const request_data = req.body;
         userModel.profile_user_loggedin(request_data, request_data.user_id, (response_data) => {
             common.response(res, response_data);
         });
     }
 
-    profile_user(req,res){
+    async profile_user(req,res){
         const request_data = req.body;
         const user_id = req.params.id;
         userModel.profile_user(request_data, user_id, (response_data) => {
@@ -133,14 +366,14 @@ class User{
         });
     }
 
-    edit_profile(req,res){
+    async edit_profile(req,res){
         const request_data = req.body;
         userModel.edit_profile(request_data, request_data.user_id, (response_data) => {
             common.response(res, response_data);
         });
     }
 
-    get_followers(req,res){
+    async get_followers(req,res){
         const request_data = req.body;
         userModel.get_followers(request_data.user_id, (response) => {
         common.response(res, response);
@@ -148,7 +381,7 @@ class User{
 
     }
 
-    get_following(req,res){
+    async get_following(req,res){
         const request_data = req.body;
         userModel.get_following(request_data.user_id, (response) => {
         common.response(res, response);
@@ -156,15 +389,38 @@ class User{
         
     }
 
-    contact_us(req,res){
-        const request_data = req.body;
-        userModel.contact_us(request_data, request_data.user_id, (response) => {
-        common.response(res, response);
-    });
-        
+    async contact_us(req,res){
+        try{
+            localizify.setLocale(req.userLang);
+            var request_data = req.body;
+
+            var rules = {
+                email_id: "required|email"
+            }
+            var message = {
+                required: t('required'),
+                email: t('email')
+            }
+            var keywords = {
+                'email_id': t('rest_keywords_email_id')
+            }
+
+            const isValid = await validator.checkValidationRules(req, res, request_data, rules, message, keywords);
+            if (!isValid) return;
+
+            userModel.contact_us(request_data, request_data.user_id, (response) => {
+                common.response(res, response);
+            });
+
+        } catch(error){
+            return common.response(res, {
+                code: response_code.OPERATION_FAILED,
+                message: t('rest_keywords_something_went_wrong')
+            });
+        }
     }
 
-    report(req,res){
+    async report(req,res){
         const request_data = req.body;
         userModel.report(request_data, request_data.reported_by_id, (response) => {
         common.response(res, response);
@@ -172,7 +428,7 @@ class User{
         
     }
     
-    comment_deal(req,res){
+    async comment_deal(req,res){
         const request_data = req.body;
         const deal_id = req.params.id;
         userModel.comment_deal(request_data, deal_id, request_data.user_id, (response) => {
@@ -181,7 +437,7 @@ class User{
         
     }
 
-    comment_post(req,res){
+    async comment_post(req,res){
         const request_data = req.body;
         const deal_id = req.params.id;
         userModel.comment_post(request_data, deal_id, request_data.user_id, (response) => {
@@ -190,35 +446,35 @@ class User{
         
     }
 
-    account_delete(req,res){
+    async account_delete(req,res){
         const request_data = req.body;
         userModel.delete_account(request_data, request_data.user_id, (response) => {
         common.response(res, response);
     });
     }
 
-    saved_deals(req,res){
+    async saved_deals(req,res){
         const request_data = req.body;
         userModel.saved_deals(request_data, request_data.user_id, (response) => {
         common.response(res, response);
     });  
     }
 
-    filter_data(req,res){
+    async filter_data(req,res){
         const request_data = req.body;
         userModel.filter_data(request_data, (response) => {
         common.response(res, response);
     });  
     }
 
-    rating_deal(req,res){
+    async rating_deal(req,res){
         const request_data = req.body;
         userModel.rating_deal(request_data, request_data.user_id, (response) => {
         common.response(res, response);
     });  
     }
 
-    like_unlike(req,res){
+    async like_unlike(req,res){
         const request_data = req.body;
         userModel.like_unlike(request_data, request_data.user_id, (response) => {
         common.response(res, response);

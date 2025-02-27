@@ -4,12 +4,13 @@ const path = require("path");
 const common = require("./utilities/common");
 const constant = require("./config/constants");
 const app_routing = require("./modules/app-routing");
+const validator = require("./middlewares/validators");
 
 require('dotenv').config();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
+app.use(validator.extractHeaderLang);
 app_routing.v1(app);
 
 app.listen(process.env.PORT | 5000, () => {
