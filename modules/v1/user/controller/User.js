@@ -2,34 +2,16 @@ var userModel = require("../models/User-model");
 var common = require("../../../../utilities/common");
 const response_code = require("../../../../utilities/response-error-code");
 const {default: localizify} = require('localizify');
-const en = require("../../../../language/en");
-const fr = require("../../../../language/fr");
-const guj = require("../../../../language/guj");
 const validator = require("../../../../middlewares/validators");
-
 const { t } = require('localizify');
-
-localizify
-    .add("en", en)
-    .add("fr", fr)
-    .add("guj", guj);
+const vrules = require("../../../validation_rules");
 
 class User{
-
     async signup(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
-
-            var rules = {
-                email_id: "required|email",
-                user_name: "required",
-                fname: "required",
-                lname: "required",
-                user_name: "required",
-                phone_number: "string|min:10|regex:/^[0-9]+$/",
-                passwords: "required|min:8"
-            }
+            var rules = vrules.signup;
+            console.log(rules)
             var message = {
                 required: t('required'),
                 email: t('email'),
@@ -59,15 +41,8 @@ class User{
 
     async login(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
-
-            var rules = {
-                email_id: "required|email",
-                login_type: "required_without:social_id",
-                social_id: "required_without:login_type",
-                passwords: "required_without:social_id|nullable|min:8"
-            }
+            var rules = vrules.login;
             var message = {
                 required: t('required'),
                 email: t('email'),
@@ -98,14 +73,6 @@ class User{
     async logout(req, res) {
         try {
             const request_data = req.body;
-    
-            if (!request_data.user_id) {
-                return res.status(400).json({
-                    code: response_code.BAD_REQUEST,
-                    message: "User ID is required"
-                });
-            }
-    
             userModel.logout(request_data, (response_data) => {
                 return common.response(res, response_data);
             });
@@ -120,12 +87,8 @@ class User{
 
     async forgot_password(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
-
-            var rules = {
-                email_id: "required|email"
-            }
+            var rules = vrules.forgot_password;
             var message = {
                 required: t('required'),
                 email: t('email')
@@ -152,19 +115,14 @@ class User{
 
     async reset_password(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
 
-            var rules = {
-                reset_token: "required|min:40|max:40",
-                new_password: "required|min:8"
-            }
+            var rules = vrules.reset_password;
             var message = {
                 required: t('required'),
                 'new_password.min': t('passwords_min'),
                 // 'reset_token.min': t('token_min'),
                 // 'reset_token.max': t('token_max')
-
             }
             var keywords = {
                 'email_id': t('rest_keywords_email_id')
@@ -188,15 +146,11 @@ class User{
 
     async complete_profile(req,res){
         try{
-            localizify.setLocale(req.userLang);
             console.log("User language:", req.userLang);
             var request_data = req.body;
             console.log(request_data)
 
-            var rules = {
-                user_id: "required",
-                profile_pic: "required"
-            }
+            var rules = vrules.complete_profile;
             var message = {
                 required: t('required')
             }
@@ -225,14 +179,10 @@ class User{
 
     async change_password(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
 
-            var rules = {
-                user_id: "required",
-                old_password: "required|min:8",
-                new_password: "required|min:8"
-            }
+            var rules = vrules.changePassword;
+
             var message = {
                 required: t('required'),
                 'old_password.min': t('passwords_min'),
@@ -267,16 +217,9 @@ class User{
 
     async add_deal(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
 
-            var rules = {
-                descriptions: "required",
-                title: "required",
-                website_url: "required",
-                category_name: "required",
-                image_name: "required"
-            }
+            var rules = vrules.add_deal;
             var message = {
                 required: t('required')
             }
@@ -303,15 +246,10 @@ class User{
 
     async add_post(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
 
-            var rules = {
-                descriptions: "required",
-                title: "required",
-                category_name: "required",
-                user_id: "required"
-            }
+            var rules = vrules.add_post;
+
             var message = {
                 required: t('required')
             }
@@ -375,7 +313,7 @@ class User{
 
     async get_followers(req,res){
         const request_data = req.body;
-        userModel.get_followers(request_data.user_id, (response) => {
+        userModel.get_followers(request_data, request_data.user_id, (response) => {
         common.response(res, response);
     });
 
@@ -383,7 +321,7 @@ class User{
 
     async get_following(req,res){
         const request_data = req.body;
-        userModel.get_following(request_data.user_id, (response) => {
+        userModel.get_following(request_data, request_data.user_id, (response) => {
         common.response(res, response);
     });
         
@@ -391,12 +329,9 @@ class User{
 
     async contact_us(req,res){
         try{
-            localizify.setLocale(req.userLang);
             var request_data = req.body;
 
-            var rules = {
-                email_id: "required|email"
-            }
+            var rules = vrules.contact_us;
             var message = {
                 required: t('required'),
                 email: t('email')

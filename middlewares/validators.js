@@ -33,6 +33,16 @@ class validator{
 
     extractHeaderLang(req,res,next) {
         req.userLang = req.headers["accept-language"] || "en";
+
+        localizify
+        .add("en", en)
+        .add("fr", fr)
+        .add("guj", guj);
+        
+        localizify.setLocale(req.userLang);
+        if (!req.body.userLang) {
+            req.body.userLang = req.userLang;
+        }
         next();
     }
 }
